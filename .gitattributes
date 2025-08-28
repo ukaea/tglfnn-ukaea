@@ -1,3 +1,5 @@
+**/*.pt filter=lfs diff=lfs merge=lfs -text
+**/*.onnx filter=lfs diff=lfs merge=lfs -text
 JETTO-BgB-EM-14Oct24/regressor_efe_gb_torchscript.pt filter=lfs diff=lfs merge=lfs -text
 JETTO-TGLF-EM-17Feb25/regressor_efi_gb_torchscript.pt filter=lfs diff=lfs merge=lfs -text
 JETTO-TGLF-EM-17Feb25/regressor_efi_gb.pt filter=lfs diff=lfs merge=lfs -text
