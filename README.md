@@ -1,9 +1,9 @@
 # tglfnn-ukaea
-Neural networks as surrogate models that emulate the TGLF quasilinear plasma turbulent transport simulator in various parameter spaces. Each folder includes both ONNX and Pytorch models traced via TorchScript. 
+Neural networks as surrogate models that emulate the [TGLF](https://gafusion.github.io/doc/tglf.html) quasilinear plasma turbulent transport simulator in various parameter spaces. Each folder includes both ONNX and Pytorch models traced via TorchScript. 
 
 ## Using the traced PyTorch models in Fortran
 
-The traced PyTorch models can be used in Fortran with [FTorch](https://github.com/torch/FTorch), which provides Fortran bindings for LibTorch (the C++ backend of PyTorch).
+The traced PyTorch models can be used in Fortran with [FTorch](https://github.com/Cambridge-ICCS/FTorch), which provides Fortran bindings for LibTorch (the C++ backend of PyTorch).  Please [cite the Ftorch publication](https://github.com/Cambridge-ICCS/FTorch#authors-and-acknowledgment) if using these models from Fortran.
 
 ### Prerequisites
 
