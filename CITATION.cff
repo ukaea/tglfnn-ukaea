@@ -29,8 +29,7 @@ authors:
   - family-names: Stancar
     given-names: Z.
 type: conference-paper
-conference:
-  name: "International Atomic Energy Agency - Fusion Energy Conference"
-  location: "Chengdu, China"
-  st
+  - name: "International Atomic Energy Agency - Fusion Energy Conference"
+  - location: "Chengdu, China"
+
 
