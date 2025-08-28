@@ -1,5 +1,5 @@
 # SPR45 ramp-up / Bohm/gyro-Bohm space
-- The input space is obtained from JETTO simulations of the STEP ramp up (SPR45) which were run with Bohm/gyro-Bohm transport. Further details on the TGLF settings can be found in [common.tglf](common.tglf) 
+- The input space is obtained from JETTO simulations of the STEP ramp up (SPR45) which were run with Bohm/gyro-Bohm transport. Further details on the TGLF settings can be found in [common.tglf](common.tglf).  ST corrections for theta_trapped were used in the training set with following formula: `theta_trapped = 1 - min(0.5,max(0.3, sqrt(rmin_loc / rmaj_loc)))` 
 - The variables *must* be provided as input of the surrogate models in the following order
 `RLNS_1, RLTS_1, RLTS_2, TAUS_2, RMIN_LOC, DRMAJDX_LOC, Q_LOC, SHAT, XNUE, KAPPA_LOC, S_KAPPA_LOC, DELTA_LOC, S_DELTA_LOC, BETAE, ZEFF`       
 - Quasineutrality is enforced across the dataset
