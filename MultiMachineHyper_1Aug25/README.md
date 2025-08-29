@@ -14,6 +14,7 @@
 
     These plots have been obtained using the following test set: [test.pkl](test.pkl).  These plots have been obtained using the following test set: [test.pkl](test.pkl). In this file, the following convention is used: `efe_gb`=$`q_e \ [GB]`$, `efi_gb`=$`q_i \ [GB]`$, `pfi_gb`=$`\Gamma_i \ [GB]`$. The same naming convention is used for the NN checkpoints.
 - The full config file used to train the surrogate models (inclusive of hyperparameters, and some arguments are redundant) can be found in [config.yaml](config.yaml)
-- The mean and variance of each input and output variable is stored in [stats.json](stats.json). - The [scaler.pkl](scaler.pkl) file contains the scaler used to train the models. Simply load it using the `pickle` module in Python.
+- The mean and variance of each input and output variable is stored in [stats.json](stats.json). 
+- The [scaler.pkl](scaler.pkl) file contains the scaler used to train the models. Simply load it using the `pickle` module in Python.
 - None of the inputs and outputs require any scaling typical of ML models. This is handled internally in the NN checkpoints.
 
