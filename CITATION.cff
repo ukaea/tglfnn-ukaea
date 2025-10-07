@@ -3,7 +3,7 @@ message: "If you use this work, please cite it as below."
 title: "Data-efficient digital twinning strategies and surrogate models of quasilinear turbulence in JET and STEP"
 authors:
   - family-names: Zanisi
-    given-names: L.
+    given-names: L
   - family-names: Casson
     given-names: F.J.
   - family-names: Patel
@@ -31,6 +31,5 @@ authors:
 type: conference-paper
 collection-title: "International Atomic Energy Agency - Fusion Energy Conference"
 event-location: "Chengdu, China"
-date-released: 2025-10-13
-version: 0.1.0
+year: 2025
 
