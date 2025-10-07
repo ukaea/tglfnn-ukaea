@@ -5,7 +5,7 @@ authors:
   - family-names: Zanisi
     given-names: L.
   - family-names: Casson
-    given-names: F.
+    given-names: F.J.
   - family-names: Patel
     given-names: B.
   - family-names: Dudding
@@ -29,7 +29,8 @@ authors:
   - family-names: Stancar
     given-names: Z.
 type: conference-paper
-  - name: "International Atomic Energy Agency - Fusion Energy Conference"
-  - location: "Chengdu, China"
+collection-title: "International Atomic Energy Agency - Fusion Energy Conference"
+event-location: "Chengdu, China"
+date-released: 2025 
 
 
