@@ -30,6 +30,8 @@ authors:
     given-names: Z.
 type: conference-paper
 collection-title: "International Atomic Energy Agency - Fusion Energy Conference"
-event-location: "Chengdu, China"
+conference:
+  name: "International Atomic Energy Agency - Fusion Energy Conference"
+  location: "Chengdu, China"
 year: 2025
 
