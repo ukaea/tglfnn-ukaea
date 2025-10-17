@@ -1,5 +1,13 @@
+# STEP files
 tglfnn_ukaea/weights/step.pkl
 JETTO-BgB-EM-14Oct24/config.yaml
 JETTO-BgB-EM-14Oct24/stats.json
 JETTO-TGLF-EM-17Feb25/config.yaml
 JETTO-TGLF-EM-17Feb25/stats.json
+
+# Python files
+**__pycache__/
+dist/
+build/
+venv/
+.venv/
