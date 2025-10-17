@@ -81,7 +81,7 @@ Usage:
 $ pip install tglfnn_ukaea
 $ python
 >>> import tglfnn_ukaea
->>> tglfnn_ukaea.loader.load("multimachine")
+>>> tglfnn_ukaea.load("multimachine")
 {
     "stats":  {...}, # Used for normalisation
     "config": {...}, # Network architecture
