@@ -1,6 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this work, please cite it as below."
 title: "Data-efficient digital twinning strategies and surrogate models of quasilinear turbulence in JET and STEP"
+type: software
 authors:
   - family-names: Zanisi
     given-names: L.
@@ -28,8 +29,40 @@ authors:
     given-names: E.
   - family-names: Stancar
     given-names: Z.
-type: conference-paper
-  - name: "International Atomic Energy Agency - Fusion Energy Conference"
-  - location: "Chengdu, China"
-
-
+preferred-citation:
+  type: conference-paper
+  authors:
+    - family-names: Zanisi
+      given-names: L.
+    - family-names: Casson
+      given-names: F.
+    - family-names: Patel
+      given-names: B.
+    - family-names: Dudding
+      given-names: H.
+    - family-names: Siddle
+      given-names: C.
+    - family-names: Ho
+      given-names: A.
+    - family-names: Snoep
+      given-names: G.
+    - family-names: Roach
+      given-names: C. M.
+    - family-names: Neiser
+      given-names: T.
+    - family-names: Bourdelle
+      given-names: C.
+    - family-names: Marin
+      given-names: M.
+    - family-names: Vergnaud
+      given-names: E.
+    - family-names: Stancar
+      given-names: Z.
+  title: "Data-efficient digital twinning strategies and surrogate models of quasilinear turbulence in JET and STEP"
+  year: 2025
+  conference:
+    name: IAEA Fusion Energy Conference
+    location: Chengdu
+    country: China
+    date-start: "2025-10-13"
+    date-end: "2025-04-18"
