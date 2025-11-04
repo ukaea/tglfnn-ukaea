@@ -1,17 +1,67 @@
 cff-version: 1.2.0
 message: "If you use this work, please cite it as below."
 title: "Data-efficient digital twinning strategies and surrogate models of quasilinear turbulence in JET and STEP"
+type: software
 authors:
   - family-names: Zanisi
     given-names: L.
   - family-names: Casson
     given-names: F.
-  - family-names: Patel
-    given-names: B.
+  - family-names: Snodin
+    given-names: A.    
   - family-names: Dudding
     given-names: H.
+  - family-names: Patel
+    given-names: B.
+  - family-names: Stancar
+    given-names: Z.        
+  - family-names: Roach
+    given-names: C. M.    
   - family-names: Siddle
     given-names: C.
+  - family-names: Brown
+    given-names: T.       
+  - family-names: Buchanan
+    given-names: J.
+  - family-names: Pamela
+    given-names: S.J.
+  - family-names: Ho
+    given-names: A.
+  - family-names: Snoep
+    given-names: G.
+  - family-names: Neiser
+    given-names: T.
+  - family-names: Bourdelle
+    given-names: C.
+  - family-names: Marin
+    given-names: M.
+  - family-names: Vergnaud
+    given-names: E.
+preferred-citation:
+  type: conference-paper
+  authors:
+  - family-names: Zanisi
+    given-names: L.
+  - family-names: Casson
+    given-names: F.
+  - family-names: Snodin
+    given-names: A.    
+  - family-names: Dudding
+    given-names: H.
+  - family-names: Patel
+    given-names: B.    
+  - family-names: Stancar
+    given-names: Z.    
+  - family-names: Roach
+    given-names: C. M.    
+  - family-names: Siddle
+    given-names: C.
+  - family-names: Brown
+    given-names: T.       
+  - family-names: Buchanan
+    given-names: J.
+  - family-names: Pamela
+    given-names: S.J.
   - family-names: Ho
     given-names: A.
   - family-names: Snoep
@@ -26,10 +76,11 @@ authors:
     given-names: M.
   - family-names: Vergnaud
     given-names: E.
-  - family-names: Stancar
-    given-names: Z.
-type: conference-paper
-  - name: "International Atomic Energy Agency - Fusion Energy Conference"
-  - location: "Chengdu, China"
-
-
+  title: "Neural surrogates of the TGLF tranport model: "
+  year: 2025
+  conference:
+    name: IAEA Fusion Energy Conference
+    location: Chengdu
+    country: China
+    date-start: "2025-10-13"
+    date-end: "2025-04-18"
