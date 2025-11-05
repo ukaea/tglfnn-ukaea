@@ -25,18 +25,45 @@ authors:
     given-names: J.
   - family-names: Pamela
     given-names: S.J.
+  - family-names: Citrin
+    given-names: J.
+  - family-names: Hamel
+    given-names: P.
+  - family-names: Vergnaud
+    given-names: E.
+  - family-names: Norman
+    given-names: T.  
+  - family-names: Fernando
+    given-names: A.
   - family-names: Ho
     given-names: A.
   - family-names: Snoep
     given-names: G.
   - family-names: Neiser
     given-names: T.
+  - family-names: Meneghini
+    given-names: O.    
   - family-names: Bourdelle
     given-names: C.
   - family-names: Marin
     given-names: M.
   - family-names: Vergnaud
     given-names: E.
+  - family-names: Kit
+    given-names: A.
+  - family-names: Bruncrona
+    given-names: A.        
+  - family-names: Jordan
+    given-names: D.    
+  - family-names: Eriksson
+    given-names: F.
+  - family-names: Quarantiello
+    given-names: L.        
+  - family-names: Lomonaco
+    given-names: V.
+  - family-names: Correnti
+    given-names: S.        
+
 preferred-citation:
   type: conference-paper
   authors:
@@ -49,9 +76,9 @@ preferred-citation:
   - family-names: Dudding
     given-names: H.
   - family-names: Patel
-    given-names: B.    
+    given-names: B.
   - family-names: Stancar
-    given-names: Z.    
+    given-names: Z.        
   - family-names: Roach
     given-names: C. M.    
   - family-names: Siddle
@@ -62,21 +89,46 @@ preferred-citation:
     given-names: J.
   - family-names: Pamela
     given-names: S.J.
+  - family-names: Citrin
+    given-names: J.
+  - family-names: Hamel
+    given-names: P.
+  - family-names: Vergnaud
+    given-names: E.
+  - family-names: Norman
+    given-names: T.  
+  - family-names: Fernando
+    given-names: A.
   - family-names: Ho
     given-names: A.
   - family-names: Snoep
     given-names: G.
-  - family-names: Roach
-    given-names: C. M.
   - family-names: Neiser
     given-names: T.
+  - family-names: Meneghini
+    given-names: O.    
   - family-names: Bourdelle
     given-names: C.
   - family-names: Marin
     given-names: M.
   - family-names: Vergnaud
     given-names: E.
-  title: "Neural surrogates of the TGLF tranport model: "
+  - family-names: Kit
+    given-names: A.
+  - family-names: Bruncrona
+    given-names: A.        
+  - family-names: Jordan
+    given-names: D.    
+  - family-names: Eriksson
+    given-names: F.
+  - family-names: Quarantiello
+    given-names: L.        
+  - family-names: Lomonaco
+    given-names: V.
+  - family-names: Correnti
+    given-names: S.        
+
+  title: "Data-efficient digital twinning strategies and surrogate models of quasilinear turbulence in JET and STEP"
   year: 2025
   conference:
     name: IAEA Fusion Energy Conference
