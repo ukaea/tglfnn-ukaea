@@ -1,0 +1,7 @@
+Semver is used to define an API version for when downstream users have to update the interface. 
+
+Thus version x.y.z of the network is like this
+
+  x - major version must be incremented if the NN inputs or outputs list (or ordering) changes, because this requires updates to JETTO (TCI), a change of API
+  y - minor version should be incremented if the TGLF settings are changed in the training set (e.g. SAT1 or SAT2).
+  z - patch version should be incremented if the training data, loss function, filters, or NN hyper-parameters are updated
