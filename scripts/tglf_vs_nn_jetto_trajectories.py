@@ -216,10 +216,8 @@ def plot_diff(
 
 if __name__ == "__main__":
 
-    basepath = Path(
-        "/common/cmg/gm7685/jetto/runs/run97781/"
-        "feb2626seq2_Zeff1_3p2p1_smalladdtransp_jintracdevel_latest"
-    )
+    tglfnn_run = Path('path/to/your/tglfnn/jetto/run/')
+    tglf_run = Path('path/to/your/tglf/jetto/run/')
 
     input_names = [
         "TGLF_RLNS_in_1",
@@ -241,19 +239,19 @@ if __name__ == "__main__":
 
     n_radial_locations = 19
 
-    nn_input_path = basepath / "0000NN_inputs.txt"
-    tglf_input_path = basepath / "0000TGLF_input.csv"
+    nn_input_path = tglfnn_run / "0000NN_inputs.txt"
+    tglf_input_path = tglf_run / "0000TGLF_input.csv"
 
     nn_flux_paths = {
-        r"$q_e \ [GB]$": basepath / "0000TGLFNN_elec_eflux_out.txt",
-        r"$q_i \ [GB]$": basepath / "0000TGLFNN_ion_eflux_out.txt",
-        r"$\Gamma_i \ [GB]$": basepath / "0000TGLFNN_ion_pflux_out.txt",
+        r"$q_e \ [GB]$": tglfnn_run / "0000TGLFNN_elec_eflux_out.txt",
+        r"$q_i \ [GB]$": tglfnn_run / "0000TGLFNN_ion_eflux_out.txt",
+        r"$\Gamma_i \ [GB]$": tglfnn_run / "0000TGLFNN_ion_pflux_out.txt",
     }
 
     tglf_flux_paths = {
-        r"$q_e \ [GB]$": basepath / "0000TGLF_elec_eflux_out.txt",
-        r"$q_i \ [GB]$": basepath / "0000TGLF_ion_eflux_out.txt",
-        r"$\Gamma_i \ [GB]$": basepath / "0000TGLF_ion_pflux_out.txt",
+        r"$q_e \ [GB]$": tglf_run / "0000TGLF_elec_eflux_out.txt",
+        r"$q_i \ [GB]$": tglf_run / "0000TGLF_ion_eflux_out.txt",
+        r"$\Gamma_i \ [GB]$": tglf_run / "0000TGLF_ion_pflux_out.txt",
     }
 
     fig, axes = plot_diff(
