@@ -13,8 +13,8 @@ dropout: 0.05
 epochs: 200
 flush: false
 fluxes:
-- efe_gb
-fluxes_from_cmd: efe_gb
+- efi1_gb
+fluxes_from_cmd: efi1_gb
 from_scratch: false
 gkmodel: TGLF_multimachine_hyper
 hidden_size: 512
@@ -23,7 +23,7 @@ iterations: 1
 labels_unavailable: false
 learning_rate: 0.0002
 loss: MSE
-model_size: 4
+model_size: 6
 num_cores: 76
 num_estimators: 5
 num_samples: 10000000
@@ -77,7 +77,7 @@ resume_id: null
 robust: false
 run_sims: true
 sample_size_debug: 1
-save_dir: /rds/project/rds-aSo1XX0UOlw/ir-zani1/qualikiz/ADEPT/adept/outputs/faithful-voice-126/
+save_dir: /rds/project/rds-aSo1XX0UOlw/ir-zani1/qualikiz/ADEPT/adept/outputs/ethereal-sound-103/
 scaler_choice: StandardScaler
 sim_data_dir: /home/ir-zani1/rds/rds-ukaea-ap001/ir-zani1/qualikiz/ADEPT/adept/data/raw/TGLF/MultiMachineHyper/SAT2ES/
 test_size: 1000000
