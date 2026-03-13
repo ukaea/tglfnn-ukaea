@@ -70,3 +70,9 @@ Further details on the FTorch Implementation of these networks can be found in a
 - **FTorch**: Install the FTorch library following the instructions in the [FTorch repository](https://github.com/Cambridge-ICCS/FTorch). This also provides a compiler specific module (`ftorch.mod`).
 - **Fortran Compiler**: Use a modern Fortran compiler (e.g., `gfortran` or `ifort`) compatible with FTorch.
 - **CMake**: Version >= 3.1 required to build FTorch. Not essential, but helpful for building final Fortran code. 
+
+
+## 4. Compare TGLF and TGLFNN in JETTO production runs
+
+- TGLFNN is only an approximation of TGLF and it will make mistakes
+- [scripts/tglf_vs_nn_jetto_trajectories.py](scripts/tglf_vs_nn_jetto_trajectories.py) shows how to plot the inputs and outputs spanned by TGLF and TGLFNN in a JETTO production run. **NOTE**: Available only in the following build on the JDC `/home/tn2395/jintrac-devel`
