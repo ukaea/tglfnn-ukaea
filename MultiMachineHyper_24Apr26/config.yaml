@@ -1,0 +1,92 @@
+acquisition: random
+acquisition_schedule: 30
+batch_size: 512
+candidate_size: 300000
+classifier_type: ParallelEnsembleClassifier
+commit_hash: edc54b0501d92d13d71e5e7584133d16dfbce4d3
+common: /home/ir-zani1/rds/rds-ukaea-ap001/ir-zani1/qualikiz/ADEPT/adept/data/interim/TGLF/JET_hyper/SAT2/common_jet_hyper.tglf
+default_config: /home/ir-zani1/rds/rds-ukaea-ap001/ir-zani1/qualikiz/ADEPT/adept/configs/JET_hyper_SAT2.yaml
+denormalise: false
+dropout: 0.05
+epochs: 250
+flush: true
+fluxes:
+- efe_gb
+- efi_gb
+- pfi_gb
+- pfe_gb
+from_scratch: false
+gkmodel: TGLF_multimachine_hyper
+gumbel_noise: -0.1
+hidden_size: 512
+input_data_dir: /home/ir-zani1/rds/rds-ukaea-ap001/ir-zani1/qualikiz/ADEPT/adept/data/interim/TGLF/JET_hyper/SAT2/
+iterations: 1
+labels_unavailable: false
+learning_rate: 0.0005
+loss_function: NLL
+model_size: 6
+num_cores: 76
+num_estimators: 5
+num_samples: 5000000
+param_space:
+  DELTA_LOC:
+  - -0.2
+  - 0.3
+  DRMAJDX_LOC:
+  - -0.3
+  - 0
+  KAPPA_LOC:
+  - 1.0
+  - 1.5
+  Q_LOC:
+  - 0.66
+  - 8
+  RLNS_1:
+  - -2
+  - 15
+  RLTS_1:
+  - 0
+  - 25
+  RLTS_2:
+  - 0
+  - 25
+  RMAJ_LOC: 3
+  RMIN_LOC:
+  - 0.1
+  - 1
+  SHAT:
+  - -1
+  - 5
+  TAUS_2:
+  - 0.25
+  - 2.5
+  VEXB_SHEAR:
+  - -0.2
+  - 0.2
+  XNUE:
+  - -5
+  - 0.6989700043360189
+  ZEFF:
+  - 1
+  - 3
+patience: 10
+processed_data_dir: /home/ir-zani1/rds/rds-ukaea-ap001/ir-zani1/qualikiz/ADEPT/adept/data/processed/TGLF/JET_hyper/SAT2/
+project_name: MultiMachineHyper13D
+regressor_type: ParallelDeepEnsemble
+resume_id: null
+robust: false
+sample_size_debug: 1
+save_dir: /rds/project/rds-aSo1XX0UOlw/ir-zani1/qualikiz/ADEPT/adept/outputs/valiant-planet-8/
+scaler_choice: StandardScaler
+sim_data_dir: /home/ir-zani1/rds/rds-ukaea-ap001/ir-zani1/qualikiz/ADEPT/adept/data/raw/TGLF/JET_hyper/SAT2/
+test_size: 500000
+theta_trapped_for_STs: false
+top_keep: 512
+train_size: 100000000
+uncert_type: epistemic
+use_all_outputs: true
+use_classifier: false
+use_classifier_for_acquisition: false
+use_regressor: true
+valid_size: 100000
+weight_decay: 0.0001
