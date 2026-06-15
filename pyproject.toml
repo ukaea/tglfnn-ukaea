@@ -1,7 +1,8 @@
 [build-system]
 requires = [
   "setuptools>=64",
-  "wheel"]
+  "wheel"
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -14,7 +15,11 @@ license = "LGPL-3.0"
 license-files = ["LICENSE"]
 authors = [{name = "UKAEA"}]
 
-dependencies = ["numpy>2", "pandas","matplotlib"]
+# Only numpy is required for the tglfnn-ukaea weights only package
+dependencies = ["numpy>2"]
+
+[project.optional-dependencies]
+dev = ["pandas","matplotlib"]
 
 [project.urls]
 Homepage = "https://github.com/ukaea/tglfnn-ukaea/"
@@ -23,3 +28,6 @@ Repository = "https://github.com/ukaea/tglfnn-ukaea/"
 [tool.setuptools]
 packages = ["tglfnn_ukaea"]
 
+[tool.setuptools.package-data]
+# Force the packager to include the pickled weights files
+tglfnn_ukaea = ["weights/multimachine.pkl", "weights/step.pkl"]
