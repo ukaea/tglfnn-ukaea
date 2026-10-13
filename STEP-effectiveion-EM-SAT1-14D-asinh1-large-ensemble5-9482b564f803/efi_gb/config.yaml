@@ -1,0 +1,325 @@
+schema: tglfnn-ukaea.step-release.v2
+version: 4.1.0
+flux: efi_gb
+architecture: Pre-LayerNorm residual MLP
+interface:
+  inputs:
+  - RLNS_1
+  - RLTS_1
+  - RLTS_2
+  - TAUS_2
+  - RMIN_LOC
+  - DRMAJDX_LOC
+  - Q_LOC
+  - SHAT
+  - XNUE
+  - KAPPA_LOC
+  - DELTA_LOC
+  - ZEFF
+  - VEXB_SHEAR
+  - BETAE
+  input_dtype: float32
+  input_shape:
+  - batch
+  - 14
+  input_scaling: Embedded; supply raw quantities
+  outputs:
+  - mean
+  - variance
+  output_shape:
+  - batch
+  - 1
+  units:
+  - GB
+  - GB^2
+  mean_floor: 0
+  particle_pinch: Signed
+training:
+  row_counts:
+    test: 305747
+    train: 29991834
+    valid: 306356
+  optimizer: AdamW
+  schedule: One-epoch linear warmup; cosine decay to 1% of initial LR
+  gradient_clip_norm: 5.0
+  loss: Huber plus detached-mean Gaussian NLL on standardized asinh(y / 1 GB)
+  checkpoint_criterion: Validation Balanced MAE
+  stages: Joint mean/variance backbone; frozen-mean physical error-power correction
+ensemble:
+  criterion:
+  - balanced
+  member_weight: 0.2
+  size: 5
+members:
+- seed: 24000
+  params:
+    activation: mish
+    batch_size: 8192
+    dropout: 0.0
+    hidden_size: 1024
+    huber_delta: 1.9309566754003455
+    learning_rate: 0.00011485756372412419
+    model_size: 8
+    nll_weight: 0.06216109990395231
+    weight_decay: 3.4273905812808347e-06
+  requested_epochs: 30
+  completed_epochs: 30
+  best_epoch: 27
+  scaling:
+    asinh_scale_GB: 1
+    transform: asinh
+    x_mean:
+    - 0.3549765348434448
+    - 1.7530040740966797
+    - 2.0198798179626465
+    - 0.7079489231109619
+    - 0.48714619874954224
+    - -0.21185408532619476
+    - 5.112426280975342
+    - 1.4175957441329956
+    - 0.018128730356693268
+    - 2.1329431533813477
+    - 0.15176208317279816
+    - 1.9264665842056274
+    - -0.005549699999392033
+    - 0.009005007334053516
+    x_std:
+    - 1.0852864980697632
+    - 1.7097141742706299
+    - 1.9132260084152222
+    - 0.232808455824852
+    - 0.262601763010025
+    - 0.14807970821857452
+    - 4.499104976654053
+    - 1.9018239974975586
+    - 0.044750288128852844
+    - 0.465252161026001
+    - 0.13733506202697754
+    - 0.5565916895866394
+    - 0.06684475392103195
+    - 0.01013824064284563
+    y_mean: 0.5637773881764454
+    y_std: 1.1661754065122494
+- seed: 24001
+  params:
+    activation: mish
+    batch_size: 8192
+    dropout: 0.0
+    hidden_size: 1024
+    huber_delta: 1.9309566754003455
+    learning_rate: 0.00011485756372412419
+    model_size: 8
+    nll_weight: 0.06216109990395231
+    weight_decay: 3.4273905812808347e-06
+  requested_epochs: 30
+  completed_epochs: 30
+  best_epoch: 18
+  scaling:
+    asinh_scale_GB: 1
+    transform: asinh
+    x_mean:
+    - 0.3549765348434448
+    - 1.7530040740966797
+    - 2.0198798179626465
+    - 0.7079489231109619
+    - 0.48714619874954224
+    - -0.21185408532619476
+    - 5.112426280975342
+    - 1.4175957441329956
+    - 0.018128730356693268
+    - 2.1329431533813477
+    - 0.15176208317279816
+    - 1.9264665842056274
+    - -0.005549699999392033
+    - 0.009005007334053516
+    x_std:
+    - 1.0852864980697632
+    - 1.7097141742706299
+    - 1.9132260084152222
+    - 0.232808455824852
+    - 0.262601763010025
+    - 0.14807970821857452
+    - 4.499104976654053
+    - 1.9018239974975586
+    - 0.044750288128852844
+    - 0.465252161026001
+    - 0.13733506202697754
+    - 0.5565916895866394
+    - 0.06684475392103195
+    - 0.01013824064284563
+    y_mean: 0.5637773881764454
+    y_std: 1.1661754065122494
+- seed: 24002
+  params:
+    activation: mish
+    batch_size: 8192
+    dropout: 0.0
+    hidden_size: 1024
+    huber_delta: 1.9309566754003455
+    learning_rate: 0.00011485756372412419
+    model_size: 8
+    nll_weight: 0.06216109990395231
+    weight_decay: 3.4273905812808347e-06
+  requested_epochs: 30
+  completed_epochs: 30
+  best_epoch: 23
+  scaling:
+    asinh_scale_GB: 1
+    transform: asinh
+    x_mean:
+    - 0.3549765348434448
+    - 1.7530040740966797
+    - 2.0198798179626465
+    - 0.7079489231109619
+    - 0.48714619874954224
+    - -0.21185408532619476
+    - 5.112426280975342
+    - 1.4175957441329956
+    - 0.018128730356693268
+    - 2.1329431533813477
+    - 0.15176208317279816
+    - 1.9264665842056274
+    - -0.005549699999392033
+    - 0.009005007334053516
+    x_std:
+    - 1.0852864980697632
+    - 1.7097141742706299
+    - 1.9132260084152222
+    - 0.232808455824852
+    - 0.262601763010025
+    - 0.14807970821857452
+    - 4.499104976654053
+    - 1.9018239974975586
+    - 0.044750288128852844
+    - 0.465252161026001
+    - 0.13733506202697754
+    - 0.5565916895866394
+    - 0.06684475392103195
+    - 0.01013824064284563
+    y_mean: 0.5637773881764454
+    y_std: 1.1661754065122494
+- seed: 24003
+  params:
+    activation: mish
+    batch_size: 8192
+    dropout: 0.0
+    hidden_size: 1024
+    huber_delta: 1.9309566754003455
+    learning_rate: 0.00011485756372412419
+    model_size: 8
+    nll_weight: 0.06216109990395231
+    weight_decay: 3.4273905812808347e-06
+  requested_epochs: 30
+  completed_epochs: 30
+  best_epoch: 24
+  scaling:
+    asinh_scale_GB: 1
+    transform: asinh
+    x_mean:
+    - 0.3549765348434448
+    - 1.7530040740966797
+    - 2.0198798179626465
+    - 0.7079489231109619
+    - 0.48714619874954224
+    - -0.21185408532619476
+    - 5.112426280975342
+    - 1.4175957441329956
+    - 0.018128730356693268
+    - 2.1329431533813477
+    - 0.15176208317279816
+    - 1.9264665842056274
+    - -0.005549699999392033
+    - 0.009005007334053516
+    x_std:
+    - 1.0852864980697632
+    - 1.7097141742706299
+    - 1.9132260084152222
+    - 0.232808455824852
+    - 0.262601763010025
+    - 0.14807970821857452
+    - 4.499104976654053
+    - 1.9018239974975586
+    - 0.044750288128852844
+    - 0.465252161026001
+    - 0.13733506202697754
+    - 0.5565916895866394
+    - 0.06684475392103195
+    - 0.01013824064284563
+    y_mean: 0.5637773881764454
+    y_std: 1.1661754065122494
+- seed: 24004
+  params:
+    activation: mish
+    batch_size: 8192
+    dropout: 0.0
+    hidden_size: 1024
+    huber_delta: 1.9309566754003455
+    learning_rate: 0.00011485756372412419
+    model_size: 8
+    nll_weight: 0.06216109990395231
+    weight_decay: 3.4273905812808347e-06
+  requested_epochs: 30
+  completed_epochs: 30
+  best_epoch: 20
+  scaling:
+    asinh_scale_GB: 1
+    transform: asinh
+    x_mean:
+    - 0.3549765348434448
+    - 1.7530040740966797
+    - 2.0198798179626465
+    - 0.7079489231109619
+    - 0.48714619874954224
+    - -0.21185408532619476
+    - 5.112426280975342
+    - 1.4175957441329956
+    - 0.018128730356693268
+    - 2.1329431533813477
+    - 0.15176208317279816
+    - 1.9264665842056274
+    - -0.005549699999392033
+    - 0.009005007334053516
+    x_std:
+    - 1.0852864980697632
+    - 1.7097141742706299
+    - 1.9132260084152222
+    - 0.232808455824852
+    - 0.262601763010025
+    - 0.14807970821857452
+    - 4.499104976654053
+    - 1.9018239974975586
+    - 0.044750288128852844
+    - 0.465252161026001
+    - 0.13733506202697754
+    - 0.5565916895866394
+    - 0.06684475392103195
+    - 0.01013824064284563
+    y_mean: 0.5637773881764454
+    y_std: 1.1661754065122494
+uncertainty:
+  variance: Physical squared prediction error around the fixed mean; correction embedded
+  intervals: mean +/- q * sqrt(variance); choose q68 or q95 by abs(mean) band
+  magnitude_bands_GB: <=0.1; (0.1,1]; (1,10]; >10
+  missing_band: Use the All multiplier if a magnitude band has no fitted entry
+  sigma_multipliers:
+  - n: 3110
+    q68: 0.6744579285213872
+    q95: 1.996507748153298
+    subset: All
+  - n: 1204
+    q68: 0.6673211416323669
+    q95: 1.9906328970772162
+    subset: Predicted <=0.1
+  - n: 898
+    q68: 0.6848033114228368
+    q95: 2.057457201390745
+    subset: Predicted 0.1-1
+  - n: 761
+    q68: 0.6209557412474659
+    q95: 1.901481150709416
+    subset: Predicted 1-10
+  - n: 247
+    q68: 0.909724796175819
+    q95: 2.1367970602877593
+    subset: Predicted >10
+  limits: Empirical development calibration; no Gaussian density coverage guarantee
