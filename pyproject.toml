@@ -7,10 +7,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tglfnn_ukaea"
-version = "0.2.0"
+version = "0.3.0"
 description = "Neural network surrogate of TGLF (weights only)"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 license = "LGPL-3.0"
 license-files = ["LICENSE"]
 authors = [{name = "UKAEA"}]
@@ -20,6 +20,8 @@ dependencies = ["numpy>2"]
 
 [project.optional-dependencies]
 dev = ["pandas","matplotlib"]
+# For regenerating the weights from the ONNX models (scripts/onnx_to_npz.py)
+export = ["onnx", "onnxruntime"]
 
 [project.urls]
 Homepage = "https://github.com/ukaea/tglfnn-ukaea/"
@@ -29,5 +31,5 @@ Repository = "https://github.com/ukaea/tglfnn-ukaea/"
 packages = ["tglfnn_ukaea"]
 
 [tool.setuptools.package-data]
-# Force the packager to include the pickled weights files
-tglfnn_ukaea = ["weights/multimachine.pkl", "weights/step.pkl"]
+# Force the packager to include the weights files
+tglfnn_ukaea = ["weights/*/*.npz"]
