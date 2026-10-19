@@ -31,5 +31,5 @@ Repository = "https://github.com/ukaea/tglfnn-ukaea/"
 packages = ["tglfnn_ukaea"]
 
 [tool.setuptools.package-data]
-# Force the packager to include the pickled weights files
-tglfnn_ukaea = ["weights/multimachine.pkl", "weights/step.pkl"]
+# Force the packager to include the weights files
+tglfnn_ukaea = ["weights/*/*.npz"]

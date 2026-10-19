@@ -72,7 +72,39 @@ Further details on the FTorch Implementation of these networks can be found in a
 - **CMake**: Version >= 3.1 required to build FTorch. Not essential, but helpful for building final Fortran code. 
 
 
-## 4. Compare TGLF and TGLFNN in JETTO production runs
+## 4. Loading the parameters directly into pure Python
+
+The `tglfnn_ukaea` Python package distributes network parameters as plain NumPy arrays, with numpy as the only dependency. They are stored as `tglfnn_ukaea/weights/{machine}/{version}.npz`:
+
+| Machine | Versions | Default |
+|---|---|---|
+| `multimachine` | 3.2.1 ([MultiMachineHyper_1Aug25](MultiMachineHyper_1Aug25)) | 3.2.1 |
+| `step` | 1.0.1 ([JETTO-TGLF-EM-17Feb25](JETTO-TGLF-EM-17Feb25)) | 1.0.1 |
+
+```python
+import tglfnn_ukaea
+
+params = tglfnn_ukaea.load("multimachine")  # default version, or e.g. version="3.2.1"
+tglfnn_ukaea.available_versions("multimachine")  # ["3.2.1"]
+params["version"]        # network version, e.g. "3.2.1"
+params["input_labels"]   # input order expected by the network
+params["efe_gb/layer_0/weight"]  # (num_estimators, out, in) float32
+```
+
+The parameters, normalisations and variance epsilon are exported directly from the ONNX models by [scripts/onnx_to_npz.py](scripts/onnx_to_npz.py), so they reproduce the ONNX outputs. That script documents the array layout and the forward pass. The normalisations come from the ONNX models, not `stats.json`, which differs from them. To regenerate the weights:
+
+```sh
+git lfs pull
+pip install -e ".[export]"
+python scripts/onnx_to_npz.py MultiMachineHyper_1Aug25 --version 3.2.1 \
+    -o tglfnn_ukaea/weights/multimachine/3.2.1.npz --verify \
+    --input-labels RLNS_1 RLTS_1 RLTS_2 TAUS_2 RMIN_LOC DRMAJDX_LOC Q_LOC SHAT XNUE KAPPA_LOC DELTA_LOC ZEFF VEXB_SHEAR
+python scripts/onnx_to_npz.py JETTO-TGLF-EM-17Feb25 --version 1.0.1 \
+    -o tglfnn_ukaea/weights/step/1.0.1.npz --verify \
+    --input-labels RLNS_1 RLTS_1 RLTS_2 TAUS_2 RMIN_LOC DRMAJDX_LOC Q_LOC SHAT XNUE KAPPA_LOC S_KAPPA_LOC DELTA_LOC S_DELTA_LOC BETAE ZEFF
+```
+
+## 5. Compare TGLF and TGLFNN in JETTO production runs
 
 - TGLFNN is only an approximation of TGLF and it will make mistakes
 - [scripts/tglf_vs_nn_jetto_trajectories.py](scripts/tglf_vs_nn_jetto_trajectories.py) shows how to plot the inputs and outputs spanned by TGLF and TGLFNN in a JETTO production run. **NOTE**: Available only in the following build on the JDC `/home/tn2395/jintrac-devel`
