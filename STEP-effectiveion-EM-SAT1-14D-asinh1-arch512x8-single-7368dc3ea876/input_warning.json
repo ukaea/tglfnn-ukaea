@@ -1,0 +1,29 @@
+{
+  "action": "Flag the steep-gradient outer-radius corner: nominal NN uncertainty is unvalidated there; use a reviewed native/reference calculation when quantitative flux confidence is required. Do not clip inputs or alter flux means.",
+  "kind": "decision_tree",
+  "rule": {
+    "above": {
+      "above": {
+        "warning": true
+      },
+      "below": {
+        "warning": false
+      },
+      "feature": "XNUE",
+      "threshold": 0.008793322369456291
+    },
+    "below": {
+      "above": {
+        "warning": true
+      },
+      "below": {
+        "warning": false
+      },
+      "feature": "RLTS_2",
+      "threshold": 16.896743774414062
+    },
+    "feature": "SHAT",
+    "threshold": 5.332881212234497
+  },
+  "scope": "Warning fitted to known campaign-basis effective-ion references. It is not a proof of training-domain membership or detection of every extrapolation. Fit/tune only; fresh held-out sensitivity and false-warning rate must be reported."
+}

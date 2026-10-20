@@ -1,6 +1,38 @@
 # tglfnn-ukaea
 Neural network surrogate models of the [TGLF](https://gafusion.github.io/doc/tglf.html) quasilinear plasma turbulent transport simulator in various parameter spaces.
 
+<!-- STEP-4.1-SERIES -->
+## STEP EM SAT1 bundles
+
+| Version | Model | Runtime files |
+| --- | --- | --- |
+| [4.1.0](STEP-effectiveion-EM-SAT1-14D-asinh1-large-ensemble5-9482b564f803/README.md) | Large five-member ensemble | Optional LFS download |
+| [4.1.1](STEP-effectiveion-EM-SAT1-14D-asinh1-arch512x8-ensemble5-6922c92623ea/README.md) | Small 512×8 five-member ensemble | Default LFS download |
+| [4.1.2](STEP-effectiveion-EM-SAT1-14D-asinh1-arch512x8-single-7368dc3ea876/README.md) | Best 512×8 single per channel | Default LFS download |
+
+Version names are relative symlinks to descriptive, content-identified directories.
+The descriptive directories contain TorchScript/ONNX models, per-flux configs,
+physical reference settings, validation/distribution plots, metrics and checksums.
+Consult each card's uncertainty limitations. Detailed provenance remains in the
+linked tagged surrogate-builder repository. These bundles are separate from the
+existing weights-only Python `load("step")` API.
+
+Git LFS is required for runtime files. The committed `.lfsconfig` excludes
+`STEP-effectiveion-EM-SAT1-14D-asinh1-large-ensemble5-9482b564f803/**` from default clone/pull downloads; its metadata remains available.
+Git LFS include/exclude patterns use the descriptive paths, where files are tracked.
+To obtain the large model explicitly, override that exclusion:
+
+```bash
+git lfs pull --include='STEP-effectiveion-EM-SAT1-14D-asinh1-large-ensemble5-9482b564f803/**' --exclude=''
+cd 4.1.0
+sha256sum -c SHA256SUMS
+```
+
+Normal clones and `git lfs pull` download 4.1.1/4.1.2. The exclusion controls
+downloads; all model payloads remain tracked in Git LFS. Per-user/local Git
+configuration can override the repository defaults.
+<!-- /STEP-4.1-SERIES -->
+
 ## Paper for acknowledgment
 
 If you use these models within your work, we request you cite the following paper:
