@@ -32,4 +32,4 @@ packages = ["tglfnn_ukaea"]
 
 [tool.setuptools.package-data]
 # Force the packager to include the weights files
-tglfnn_ukaea = ["weights/*/*.npz"]
+tglfnn_ukaea = ["weights/*/*.npz", "reference/*/*.npz"]
