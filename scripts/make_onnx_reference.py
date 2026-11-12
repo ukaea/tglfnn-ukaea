@@ -8,7 +8,7 @@ using tglfnn_ukaea.load_reference.
 
 Each npz contains:
 
-    version            ()                      network version, e.g. "3.2.1"
+    version            ()                      network version, e.g. "3.2.7"
     model_name         ()                      model directory
     input_labels       (n_in,)                 input order
     output_labels      (n_out,)                fluxes, e.g. ["efe_gb", "efi_gb", "pfi_gb"]
