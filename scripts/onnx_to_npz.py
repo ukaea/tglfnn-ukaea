@@ -6,7 +6,7 @@ from the ONNX graphs, so the npz reproduces them exactly.
 
 The npz contains only plain arrays (no pickled objects):
 
-    version            ()               network version, e.g. "3.2.1"
+    version            ()               network version, e.g. "3.2.7"
     model_name         ()               model directory, e.g. "MultiMachineHyper_1Aug25"
     input_labels       (n_in,)          input order expected by the network
     output_labels      (n_out,)         fluxes, e.g. ["efe_gb", "efi_gb", "pfi_gb"]
@@ -36,8 +36,8 @@ The members are combined as mean = E[mu], variance = E[var] + Var[mu], and
 un-normalised as mean * output_std + output_mean, variance * output_std**2.
 
 Usage:
-    python scripts/onnx_to_npz.py MultiMachineHyper_1Aug25 --version 3.2.1 \
-        -o tglfnn_ukaea/weights/multimachine/3.2.1.npz --verify \
+    python scripts/onnx_to_npz.py MultiMachineHyperES_12Nov26 --version 3.2.7 \
+        -o tglfnn_ukaea/weights/multimachine/3.2.7.npz --verify \
         --input-labels RLNS_1 RLTS_1 RLTS_2 TAUS_2 RMIN_LOC DRMAJDX_LOC Q_LOC SHAT XNUE KAPPA_LOC DELTA_LOC ZEFF VEXB_SHEAR
 
     python scripts/onnx_to_npz.py JETTO-TGLF-EM-17Feb25 --version 1.0.1 \
@@ -569,7 +569,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--version",
         required=True,
-        help="network version, e.g. 3.2.1",
+        help="network version, e.g. 3.2.7",
     )
     parser.add_argument(
         "--input-labels",

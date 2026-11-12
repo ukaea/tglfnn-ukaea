@@ -10,7 +10,7 @@ REFERENCE_DIR = pathlib.Path(__file__).parent / "reference"
 
 # Network version loaded for each machine when no version is given.
 DEFAULT_VERSIONS = {
-    "multimachine": "3.2.1",
+    "multimachine": "3.2.7",
     "step": "1.0.1",
 }
 
