@@ -78,15 +78,15 @@ The `tglfnn_ukaea` Python package distributes network parameters as plain NumPy 
 
 | Machine | Versions | Default |
 |---|---|---|
-| `multimachine` | 3.2.1 ([MultiMachineHyper_1Aug25](MultiMachineHyper_1Aug25)) | 3.2.1 |
+| `multimachine` | 3.2.1 ([MultiMachineHyper_1Aug25](MultiMachineHyper_1Aug25)), 3.2.7 ([MultiMachineHyperES_12Nov26](MultiMachineHyperES_12Nov26)) | 3.2.7 |
 | `step` | 1.0.1 ([JETTO-TGLF-EM-17Feb25](JETTO-TGLF-EM-17Feb25)) | 1.0.1 |
 
 ```python
 import tglfnn_ukaea
 
 params = tglfnn_ukaea.load("multimachine")  # default version, or e.g. version="3.2.1"
-tglfnn_ukaea.available_versions("multimachine")  # ["3.2.1"]
-params["version"]        # network version, e.g. "3.2.1"
+tglfnn_ukaea.available_versions("multimachine")  # ["3.2.1", "3.2.7"]
+params["version"]        # network version, e.g. "3.2.7"
 params["input_labels"]   # input order expected by the network
 params["efe_gb/layer_0/weight"]  # (num_estimators, out, in) float32
 ```
@@ -98,6 +98,9 @@ git lfs pull
 pip install -e ".[export]"
 python scripts/onnx_to_npz.py MultiMachineHyper_1Aug25 --version 3.2.1 \
     -o tglfnn_ukaea/weights/multimachine/3.2.1.npz --verify \
+    --input-labels RLNS_1 RLTS_1 RLTS_2 TAUS_2 RMIN_LOC DRMAJDX_LOC Q_LOC SHAT XNUE KAPPA_LOC DELTA_LOC ZEFF VEXB_SHEAR
+python scripts/onnx_to_npz.py MultiMachineHyperES_12Nov26 --version 3.2.7 \
+    -o tglfnn_ukaea/weights/multimachine/3.2.7.npz --verify \
     --input-labels RLNS_1 RLTS_1 RLTS_2 TAUS_2 RMIN_LOC DRMAJDX_LOC Q_LOC SHAT XNUE KAPPA_LOC DELTA_LOC ZEFF VEXB_SHEAR
 python scripts/onnx_to_npz.py JETTO-TGLF-EM-17Feb25 --version 1.0.1 \
     -o tglfnn_ukaea/weights/step/1.0.1.npz --verify \
