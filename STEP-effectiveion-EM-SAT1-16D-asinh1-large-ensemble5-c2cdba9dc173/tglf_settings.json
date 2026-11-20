@@ -1,0 +1,34 @@
+{
+  "schema": "tglfnn-ukaea.step-em-v42.settings.v1",
+  "reference_mass_unit": "deuterium (m_D = 2 m_p)",
+  "gacode_commit": "fb52b696905a374171d16e713b9c33c8c1e4ef91",
+  "common_template": "common_STEP_em_v42.tglf",
+  "common_template_sha256": "6de412dfef18fb3c1247b149b0c142f6356513e60bd2c2cedb6d2b9a36688314",
+  "species": {
+    "NS": 2,
+    "ZS_1": -1.0,
+    "MASS_1": 0.0002723,
+    "AS_1": 1.0,
+    "TAUS_1": 1.0,
+    "ZS_2": 1.0,
+    "MASS_2": 1.25,
+    "AS_2": 1.0,
+    "quasineutrality": "RLNS_2 = RLNS_1 (effective single DT50 ion; m_D units)"
+  },
+  "physics_and_grid": {
+    "UNITS": "GYRO",
+    "SAT_RULE": 1,
+    "USE_BPER": true,
+    "USE_BPAR": true,
+    "ALPHA_ZF": -1,
+    "XNU_MODEL": 2,
+    "KYGRID_MODEL": 4,
+    "NMODES": 2,
+    "NBASIS_MIN": 2,
+    "NBASIS_MAX": 10,
+    "WIDTH": 1.9,
+    "WIDTH_MIN": 0.495,
+    "RMAJ_LOC": 2.0,
+    "THETA_TRAPPED_formula": "1.0 - clip(sqrt(RMIN_LOC / RMAJ_LOC), 0.3, 0.7)"
+  }
+}

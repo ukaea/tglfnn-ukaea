@@ -1,6 +1,35 @@
 # tglfnn-ukaea
 Neural network surrogate models of the [TGLF](https://gafusion.github.io/doc/tglf.html) quasilinear plasma turbulent transport simulator in various parameter spaces.
 
+<!-- STEP-5.0-SERIES -->
+## STEP EM SAT1 16D bundles
+
+| Version | Model | Runtime files |
+| --- | --- | --- |
+| [5.0.0](STEP-effectiveion-EM-SAT1-16D-asinh1-large-ensemble5-c2cdba9dc173/README.md) | Large five-member ensemble | Optional LFS download (1.27 GB) |
+| [5.0.1](STEP-effectiveion-EM-SAT1-16D-asinh1-arch512x8-ensemble5-ed083e5f1bea/README.md) | 512×8 five-member ensemble | Default LFS download (540 MB) |
+| [5.0.2](STEP-effectiveion-EM-SAT1-16D-asinh1-arch512x8-single-e5ab7d902649/README.md) | Selected 512×8 single per channel | Default LFS download (108 MB) |
+
+Version names are relative symlinks to descriptive, content-identified directories containing TorchScript/ONNX models,
+per-flux training and uncertainty configs, physical reference settings (`m_D` units), test/distribution plots, metrics,
+and checksums. Major version `5` uses the 16-input JINTRAC TCI `case (5)` interface (`ITRTGLFNN_VER = 5, 0, x`, adding
+`S_KAPPA_LOC` and `S_DELTA_LOC`). Consult each card's domain and uncertainty limitations. Detailed provenance remains
+in the linked tagged surrogate-builder repository. These bundles are separate from the weights-only Python `load("step")` API (`1.0.1`).
+
+Git LFS is required for runtime files. The committed `.lfsconfig` excludes
+`STEP-effectiveion-EM-SAT1-16D-asinh1-large-ensemble5-c2cdba9dc173/**` from default clone/pull downloads while keeping its metadata available.
+Git LFS include/exclude patterns use the descriptive paths, where files are tracked.
+To pull the large `5.0.0` bundle explicitly:
+
+```bash
+git lfs pull --include='STEP-effectiveion-EM-SAT1-16D-asinh1-large-ensemble5-c2cdba9dc173/**' --exclude=''
+(cd 5.0.0 && sha256sum -c SHA256SUMS)
+```
+
+Normal clones and `git lfs pull` download `5.0.1` and `5.0.2`. The exclusion controls downloads; all model payloads
+remain tracked in Git LFS. Per-user/local Git configuration can override the repository defaults.
+<!-- /STEP-5.0-SERIES -->
+
 ## Paper for acknowledgment
 
 If you use these models within your work, we request you cite the following paper:

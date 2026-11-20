@@ -1,0 +1,457 @@
+schema: tglfnn-ukaea.step-release.v3
+version: 5.0.0
+flux: pfi_gb
+reference_mass_unit: deuterium (m_D = 2 m_p; MASS_1=0.0002723, MASS_2=1.25)
+architecture: Pre-LayerNorm residual MLP with embedded log10(XNUE)/log10(BETAE) input
+  standardization
+interface:
+  inputs:
+  - RLNS_1
+  - RLTS_1
+  - RLTS_2
+  - TAUS_2
+  - RMIN_LOC
+  - DRMAJDX_LOC
+  - Q_LOC
+  - SHAT
+  - XNUE
+  - KAPPA_LOC
+  - S_KAPPA_LOC
+  - DELTA_LOC
+  - S_DELTA_LOC
+  - ZEFF
+  - VEXB_SHEAR
+  - BETAE
+  input_dtype: float32
+  input_shape:
+  - batch
+  - 16
+  input_scaling: Embedded (including log10(max(x, 1e-8)) on XNUE and BETAE); supply
+    raw physical quantities
+  outputs:
+  - mean
+  - variance
+  output_shape:
+  - batch
+  - 1
+  units:
+  - GB
+  - GB^2
+  mean_floor: null
+  particle_pinch: Signed (unclamped inward pinch preserved)
+training:
+  row_counts:
+    train: 28730550
+    valid: 293527
+  optimizer: AdamW
+  schedule: One-epoch linear warmup; cosine decay to 1% of initial LR
+  gradient_clip_norm: 5.0
+  loss: Huber plus detached-mean Gaussian NLL on standardized asinh(y / 1.0 GB)
+  checkpoint_criterion: Validation Balanced MAE
+  stages: Joint mean/variance backbone; post-hoc frozen-mean physical error-power
+    calibration
+ensemble:
+  size: 5
+  aggregation: Equal-weight arithmetic mean; law of total variance prior to physical
+    calibration
+members:
+- seed: 24000
+  params:
+    hidden_size: 768
+    model_size: 12
+    activation: gelu
+    dropout: 0.05
+    batch_size: 4096
+    lr: 0.00025
+    weight_decay: 0.0001
+    low_flux_weight: 1.0
+  requested_epochs: 60
+  completed_epochs: 60
+  best_epoch: 55
+  scaling:
+    inputs:
+    - RLNS_1
+    - RLTS_1
+    - RLTS_2
+    - TAUS_2
+    - RMIN_LOC
+    - DRMAJDX_LOC
+    - Q_LOC
+    - SHAT
+    - XNUE
+    - KAPPA_LOC
+    - S_KAPPA_LOC
+    - DELTA_LOC
+    - S_DELTA_LOC
+    - ZEFF
+    - VEXB_SHEAR
+    - BETAE
+    log10_transform_inputs:
+    - XNUE
+    - BETAE
+    log10_floor: 1.0e-08
+    input_mean:
+    - 0.5266284905189208
+    - 2.4183516652183346
+    - 2.4859163002062052
+    - 0.6580670518441752
+    - 0.6029100890326732
+    - -0.246762156908089
+    - 6.2246068889171005
+    - 1.8355468929476968
+    - -2.177930953220298
+    - 2.227599064131524
+    - 0.3248287109760688
+    - 0.21692038914685038
+    - 0.4541445249000176
+    - 2.3320797687845913
+    - -0.00441610041906509
+    - -2.6733059515931794
+    input_std:
+    - 1.4216283159129433
+    - 2.4580673335621013
+    - 2.540465636090258
+    - 0.2881468676201818
+    - 0.2367076238618456
+    - 0.13262545259629424
+    - 4.749821935781441
+    - 1.892748647061616
+    - 0.6034916558372297
+    - 0.37743181492629146
+    - 0.36999661009667106
+    - 0.142817586179464
+    - 0.4518762581137272
+    - 0.7135981223436667
+    - 0.0567471339448986
+    - 0.6402323150301579
+    target_asinh_scale_gb: 1.0
+    target_transformed_mean: 0.02973536658480026
+    target_transformed_std: 1.1192515677010155
+- seed: 24001
+  params:
+    hidden_size: 768
+    model_size: 12
+    activation: gelu
+    dropout: 0.05
+    batch_size: 4096
+    lr: 0.00025
+    weight_decay: 0.0001
+    low_flux_weight: 1.0
+  requested_epochs: 60
+  completed_epochs: 60
+  best_epoch: 53
+  scaling:
+    inputs:
+    - RLNS_1
+    - RLTS_1
+    - RLTS_2
+    - TAUS_2
+    - RMIN_LOC
+    - DRMAJDX_LOC
+    - Q_LOC
+    - SHAT
+    - XNUE
+    - KAPPA_LOC
+    - S_KAPPA_LOC
+    - DELTA_LOC
+    - S_DELTA_LOC
+    - ZEFF
+    - VEXB_SHEAR
+    - BETAE
+    log10_transform_inputs:
+    - XNUE
+    - BETAE
+    log10_floor: 1.0e-08
+    input_mean:
+    - 0.5266284905189208
+    - 2.4183516652183346
+    - 2.4859163002062052
+    - 0.6580670518441752
+    - 0.6029100890326732
+    - -0.246762156908089
+    - 6.2246068889171005
+    - 1.8355468929476968
+    - -2.177930953220298
+    - 2.227599064131524
+    - 0.3248287109760688
+    - 0.21692038914685038
+    - 0.4541445249000176
+    - 2.3320797687845913
+    - -0.00441610041906509
+    - -2.6733059515931794
+    input_std:
+    - 1.4216283159129433
+    - 2.4580673335621013
+    - 2.540465636090258
+    - 0.2881468676201818
+    - 0.2367076238618456
+    - 0.13262545259629424
+    - 4.749821935781441
+    - 1.892748647061616
+    - 0.6034916558372297
+    - 0.37743181492629146
+    - 0.36999661009667106
+    - 0.142817586179464
+    - 0.4518762581137272
+    - 0.7135981223436667
+    - 0.0567471339448986
+    - 0.6402323150301579
+    target_asinh_scale_gb: 1.0
+    target_transformed_mean: 0.02973536658480026
+    target_transformed_std: 1.1192515677010155
+- seed: 24002
+  params:
+    hidden_size: 768
+    model_size: 12
+    activation: gelu
+    dropout: 0.05
+    batch_size: 4096
+    lr: 0.00025
+    weight_decay: 0.0001
+    low_flux_weight: 1.0
+  requested_epochs: 60
+  completed_epochs: 60
+  best_epoch: 48
+  scaling:
+    inputs:
+    - RLNS_1
+    - RLTS_1
+    - RLTS_2
+    - TAUS_2
+    - RMIN_LOC
+    - DRMAJDX_LOC
+    - Q_LOC
+    - SHAT
+    - XNUE
+    - KAPPA_LOC
+    - S_KAPPA_LOC
+    - DELTA_LOC
+    - S_DELTA_LOC
+    - ZEFF
+    - VEXB_SHEAR
+    - BETAE
+    log10_transform_inputs:
+    - XNUE
+    - BETAE
+    log10_floor: 1.0e-08
+    input_mean:
+    - 0.5266284905189208
+    - 2.4183516652183346
+    - 2.4859163002062052
+    - 0.6580670518441752
+    - 0.6029100890326732
+    - -0.246762156908089
+    - 6.2246068889171005
+    - 1.8355468929476968
+    - -2.177930953220298
+    - 2.227599064131524
+    - 0.3248287109760688
+    - 0.21692038914685038
+    - 0.4541445249000176
+    - 2.3320797687845913
+    - -0.00441610041906509
+    - -2.6733059515931794
+    input_std:
+    - 1.4216283159129433
+    - 2.4580673335621013
+    - 2.540465636090258
+    - 0.2881468676201818
+    - 0.2367076238618456
+    - 0.13262545259629424
+    - 4.749821935781441
+    - 1.892748647061616
+    - 0.6034916558372297
+    - 0.37743181492629146
+    - 0.36999661009667106
+    - 0.142817586179464
+    - 0.4518762581137272
+    - 0.7135981223436667
+    - 0.0567471339448986
+    - 0.6402323150301579
+    target_asinh_scale_gb: 1.0
+    target_transformed_mean: 0.02973536658480026
+    target_transformed_std: 1.1192515677010155
+- seed: 24003
+  params:
+    hidden_size: 768
+    model_size: 12
+    activation: gelu
+    dropout: 0.05
+    batch_size: 4096
+    lr: 0.00025
+    weight_decay: 0.0001
+    low_flux_weight: 1.0
+  requested_epochs: 60
+  completed_epochs: 60
+  best_epoch: 56
+  scaling:
+    inputs:
+    - RLNS_1
+    - RLTS_1
+    - RLTS_2
+    - TAUS_2
+    - RMIN_LOC
+    - DRMAJDX_LOC
+    - Q_LOC
+    - SHAT
+    - XNUE
+    - KAPPA_LOC
+    - S_KAPPA_LOC
+    - DELTA_LOC
+    - S_DELTA_LOC
+    - ZEFF
+    - VEXB_SHEAR
+    - BETAE
+    log10_transform_inputs:
+    - XNUE
+    - BETAE
+    log10_floor: 1.0e-08
+    input_mean:
+    - 0.5266284905189208
+    - 2.4183516652183346
+    - 2.4859163002062052
+    - 0.6580670518441752
+    - 0.6029100890326732
+    - -0.246762156908089
+    - 6.2246068889171005
+    - 1.8355468929476968
+    - -2.177930953220298
+    - 2.227599064131524
+    - 0.3248287109760688
+    - 0.21692038914685038
+    - 0.4541445249000176
+    - 2.3320797687845913
+    - -0.00441610041906509
+    - -2.6733059515931794
+    input_std:
+    - 1.4216283159129433
+    - 2.4580673335621013
+    - 2.540465636090258
+    - 0.2881468676201818
+    - 0.2367076238618456
+    - 0.13262545259629424
+    - 4.749821935781441
+    - 1.892748647061616
+    - 0.6034916558372297
+    - 0.37743181492629146
+    - 0.36999661009667106
+    - 0.142817586179464
+    - 0.4518762581137272
+    - 0.7135981223436667
+    - 0.0567471339448986
+    - 0.6402323150301579
+    target_asinh_scale_gb: 1.0
+    target_transformed_mean: 0.02973536658480026
+    target_transformed_std: 1.1192515677010155
+- seed: 24004
+  params:
+    hidden_size: 768
+    model_size: 12
+    activation: gelu
+    dropout: 0.05
+    batch_size: 4096
+    lr: 0.00025
+    weight_decay: 0.0001
+    low_flux_weight: 1.0
+  requested_epochs: 60
+  completed_epochs: 60
+  best_epoch: 52
+  scaling:
+    inputs:
+    - RLNS_1
+    - RLTS_1
+    - RLTS_2
+    - TAUS_2
+    - RMIN_LOC
+    - DRMAJDX_LOC
+    - Q_LOC
+    - SHAT
+    - XNUE
+    - KAPPA_LOC
+    - S_KAPPA_LOC
+    - DELTA_LOC
+    - S_DELTA_LOC
+    - ZEFF
+    - VEXB_SHEAR
+    - BETAE
+    log10_transform_inputs:
+    - XNUE
+    - BETAE
+    log10_floor: 1.0e-08
+    input_mean:
+    - 0.5266284905189208
+    - 2.4183516652183346
+    - 2.4859163002062052
+    - 0.6580670518441752
+    - 0.6029100890326732
+    - -0.246762156908089
+    - 6.2246068889171005
+    - 1.8355468929476968
+    - -2.177930953220298
+    - 2.227599064131524
+    - 0.3248287109760688
+    - 0.21692038914685038
+    - 0.4541445249000176
+    - 2.3320797687845913
+    - -0.00441610041906509
+    - -2.6733059515931794
+    input_std:
+    - 1.4216283159129433
+    - 2.4580673335621013
+    - 2.540465636090258
+    - 0.2881468676201818
+    - 0.2367076238618456
+    - 0.13262545259629424
+    - 4.749821935781441
+    - 1.892748647061616
+    - 0.6034916558372297
+    - 0.37743181492629146
+    - 0.36999661009667106
+    - 0.142817586179464
+    - 0.4518762581137272
+    - 0.7135981223436667
+    - 0.0567471339448986
+    - 0.6402323150301579
+    target_asinh_scale_gb: 1.0
+    target_transformed_mean: 0.02973536658480026
+    target_transformed_std: 1.1192515677010155
+uncertainty:
+  variance: Physical squared prediction error around the fixed mean; log-linear basis
+    correction embedded
+  intervals: mean +/- q * sqrt(variance); choose q68 or q95 by abs(mean) band
+  magnitude_bands_GB: <=0.1; (0.1,1]; (1,10]; >10
+  missing_band: Use the All multiplier if a magnitude band has no fitted entry
+  sigma_multipliers:
+  - subset: All
+    n: 4865
+    q68: 0.7787156614747978
+    q95: 1.9240631178238505
+  - subset: Predicted <=0.1
+    n: 2178
+    q68: 0.7335270025872528
+    q95: 1.8174230168646204
+  - subset: Predicted (0.1,1]
+    n: 1636
+    q68: 0.7973920901849547
+    q95: 1.9652068910051472
+  - subset: Predicted (1,10]
+    n: 862
+    q68: 0.8344805343446444
+    q95: 2.0045010662885323
+  - subset: Predicted >10
+    n: 189
+    q68: 0.8899484739088468
+    q95: 1.9951033124862023
+  - subset: Predicted <0 (pinch)
+    n: 2982
+    q68: 0.822712513060564
+    q95: 2.0118707653542747
+  - subset: Predicted >=0
+    n: 1883
+    q68: 0.6771335475928113
+    q95: 1.759113443162285
+  fallback_recommendation: For coupled transport solvers, combine input_warning.json
+    with relative uncertainty sqrt(variance) / max(abs(mean), 0.5 GB) >= 0.75 before
+    trusting high-extrapolation predictions.
+  limits: Empirical development calibration on fresh reference runs; not a formal
+    Gaussian density guarantee
