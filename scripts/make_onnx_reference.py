@@ -45,7 +45,11 @@ def make_reference(machine, version, seed=0):
     low = (mean - 2 * std).min(axis=0)
     high = (mean + 2 * std).max(axis=0)
     rng = np.random.default_rng(seed)
-    inputs = rng.uniform(low, high, (NUM_SAMPLES, len(low))).astype(np.float32)
+    inputs = rng.uniform(low, high, (NUM_SAMPLES, len(low)))
+    if "input_log10_mask" in params:
+        log10_mask = np.asarray(params["input_log10_mask"][0], dtype=bool)
+        inputs[:, log10_mask] = 10.0 ** inputs[:, log10_mask]
+    inputs = inputs.astype(np.float32)
 
     reference = {
         "version": params["version"],
@@ -56,6 +60,8 @@ def make_reference(machine, version, seed=0):
     }
     for flux in params["output_labels"]:
         path = model_dir / f"regressor_{flux}_onnx.onnx"
+        if not path.exists():
+            path = model_dir / f"regressor_{flux}.onnx"
         if path.read_bytes()[:40].startswith(b"version https://git-lfs"):
             raise SystemExit(f"{path} is a git-lfs pointer; run `git lfs pull` first")
         session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])

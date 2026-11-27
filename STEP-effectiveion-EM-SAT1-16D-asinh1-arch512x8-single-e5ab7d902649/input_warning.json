@@ -1,0 +1,197 @@
+{
+  "kind": "decision_tree",
+  "projection": "50_16d",
+  "uses_log10_betae": true,
+  "rule": {
+    "feature": "DRMAJDX_LOC",
+    "threshold": -0.3429916054010391,
+    "below": {
+      "feature": "RLTS_2",
+      "threshold": 16.692575454711914,
+      "below": {
+        "feature": "TAUS_2",
+        "threshold": 0.9361279308795929,
+        "below": {
+          "feature": "SHAT",
+          "threshold": 3.847936749458313,
+          "below": {
+            "feature": "KAPPA_LOC",
+            "threshold": 2.8367708921432495,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": true
+            }
+          },
+          "above": {
+            "feature": "RLTS_1",
+            "threshold": 4.28175163269043,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": true
+            }
+          }
+        },
+        "above": {
+          "feature": "Q_LOC",
+          "threshold": 5.670526504516602,
+          "below": {
+            "feature": "RLTS_1",
+            "threshold": 1.0773767232894897,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": true
+            }
+          },
+          "above": {
+            "feature": "SHAT",
+            "threshold": 3.3854340314865112,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": true
+            }
+          }
+        }
+      },
+      "above": {
+        "feature": "Q_LOC",
+        "threshold": 11.520685195922852,
+        "below": {
+          "feature": "RLNS_1",
+          "threshold": 7.17255163192749,
+          "below": {
+            "warning": true
+          },
+          "above": {
+            "warning": true
+          }
+        },
+        "above": {
+          "warning": true
+        }
+      }
+    },
+    "above": {
+      "feature": "RLTS_1",
+      "threshold": 2.7959026098251343,
+      "below": {
+        "feature": "LOG10_BETAE",
+        "threshold": -1.9006614089012146,
+        "below": {
+          "feature": "RLNS_1",
+          "threshold": 1.2788167595863342,
+          "below": {
+            "feature": "Q_LOC",
+            "threshold": 9.15192174911499,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": false
+            }
+          },
+          "above": {
+            "feature": "LOG10_BETAE",
+            "threshold": -2.5418992042541504,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": true
+            },
+            "raw_equivalent": {
+              "feature": "BETAE",
+              "threshold": 0.0028714469410593404
+            }
+          }
+        },
+        "above": {
+          "feature": "RLTS_1",
+          "threshold": 1.1395654082298279,
+          "below": {
+            "feature": "RMIN_LOC",
+            "threshold": 0.5399144291877747,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": true
+            }
+          },
+          "above": {
+            "feature": "S_DELTA_LOC",
+            "threshold": 0.14220862090587616,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": true
+            }
+          }
+        },
+        "raw_equivalent": {
+          "feature": "BETAE",
+          "threshold": 0.012570095902112185
+        }
+      },
+      "above": {
+        "feature": "SHAT",
+        "threshold": 5.229963064193726,
+        "below": {
+          "feature": "RMIN_LOC",
+          "threshold": 0.5345912277698517,
+          "below": {
+            "feature": "Q_LOC",
+            "threshold": 3.7465730905532837,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": true
+            }
+          },
+          "above": {
+            "feature": "SHAT",
+            "threshold": 3.816017985343933,
+            "below": {
+              "warning": false
+            },
+            "above": {
+              "warning": false
+            }
+          }
+        },
+        "above": {
+          "feature": "VEXB_SHEAR",
+          "threshold": -0.057747017592191696,
+          "below": {
+            "warning": false
+          },
+          "above": {
+            "feature": "LOG10_BETAE",
+            "threshold": -2.7939224243164062,
+            "below": {
+              "warning": true
+            },
+            "above": {
+              "warning": true
+            },
+            "raw_equivalent": {
+              "feature": "BETAE",
+              "threshold": 0.0016072283179093675
+            }
+          }
+        }
+      }
+    }
+  },
+  "action": "Advisory out-of-target / stiff-cliff flag: nominal surrogate variance can under-represent saturated post-bifurcation plateaus where ensemble CoV drops. Combine runtime CoV checks (sqrt(variance)/max(|mean|, 0.5 GB)) with this input_warning rule when deciding fallback to native/reference TGLF; never clip inputs or alter flux means.",
+  "scope": "Supervised on fresh CCLR v4.2 optA_ky4 references outside (-10, 500] GB using LOG10_BETAE/LOG10_XNUE candidate splits; selected strictly on tune and audited on untouched assessment."
+}
