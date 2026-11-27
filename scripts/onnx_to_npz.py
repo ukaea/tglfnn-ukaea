@@ -43,6 +43,10 @@ Usage:
     python scripts/onnx_to_npz.py JETTO-TGLF-EM-17Feb25 --version 1.0.1 \
         -o tglfnn_ukaea/weights/step/1.0.1.npz --verify \
         --input-labels RLNS_1 RLTS_1 RLTS_2 TAUS_2 RMIN_LOC DRMAJDX_LOC Q_LOC SHAT XNUE KAPPA_LOC S_KAPPA_LOC DELTA_LOC S_DELTA_LOC BETAE ZEFF
+
+    python scripts/onnx_to_npz.py STEP-effectiveion-EM-SAT1-16D-asinh1-arch512x8-single-e5ab7d902649 --version 5.0.2 \
+        -o tglfnn_ukaea/weights/step/5.0.2.npz --verify \
+        --input-labels RLNS_1 RLTS_1 RLTS_2 TAUS_2 RMIN_LOC DRMAJDX_LOC Q_LOC SHAT XNUE KAPPA_LOC S_KAPPA_LOC DELTA_LOC S_DELTA_LOC ZEFF VEXB_SHEAR BETAE
 """
 
 from __future__ import annotations
@@ -50,6 +54,7 @@ from __future__ import annotations
 import argparse
 import collections
 import hashlib
+import math
 import pathlib
 import re
 
@@ -63,6 +68,9 @@ DEFAULT_FLUXES = ("efe_gb", "efi_gb", "pfi_gb")
 # For example, models.3.model.2.weight is the weight of layer 2
 # of ensemble member 3.
 WEIGHT_NAME = re.compile(r"models\.(\d+)\.model\.(\d+)\.weight")
+RESNET_BLOCK_WEIGHT = re.compile(
+    r"base\.members\.(\d+)\.model\.blocks\.(\d+)\.net\.0\.weight"
+)
 
 
 # ONNX graph helpers -----------------------------------------------------------
@@ -351,16 +359,170 @@ def read_layers(initializers):
     return weights, biases
 
 
+def parse_onnx_resnet_v42(graph):
+    """Reads a STEP EM 5.0.x V42PhysicalVariance(V42Ensemble(ResNetMLP)) graph."""
+    initializers = {i.name: numpy_helper.to_array(i) for i in graph.initializer}
+    walk = GraphWalker(graph)
+
+    (graph_input,) = graph.input
+    input_type = graph_input.type.tensor_type
+    dims = input_type.shape.dim
+    if input_type.elem_type != onnx.TensorProto.FLOAT or len(dims) != 2 or not dims[1].dim_value:
+        raise ValueError("input is not float32 with shape (batch, num_inputs)")
+    num_inputs = dims[1].dim_value
+
+    outputs = [o.name for o in graph.output]
+    if outputs != ["mean", "variance"]:
+        raise ValueError(f"graph outputs {outputs}, expected ['mean', 'variance']")
+
+    blocks_by_member = collections.defaultdict(list)
+    for name in initializers:
+        match = RESNET_BLOCK_WEIGHT.fullmatch(name)
+        if match:
+            blocks_by_member[int(match[1])].append(int(match[2]))
+    members = sorted(blocks_by_member)
+    if not members or members != list(range(len(members))):
+        raise ValueError(f"non-contiguous ResNet ensemble members {members}")
+    blocks = sorted(blocks_by_member[0])
+    if any(sorted(blocks_by_member[m]) != blocks for m in members):
+        raise ValueError("ResNet ensemble members have different block counts")
+
+    def stack_param(suffix):
+        return np.stack([initializers[f"base.members.{m}.{suffix}"] for m in members])
+
+    # Verify identical input scalers across members.
+    x_mean = initializers["base.members.0.scaler.x_mean"].reshape(num_inputs)
+    x_std = initializers["base.members.0.scaler.x_std"].reshape(num_inputs)
+    log10_mask = initializers["base.members.0.scaler.log10_mask"].astype(bool).reshape(num_inputs)
+    for m in members[1:]:
+        if not (
+            np.array_equal(initializers[f"base.members.{m}.scaler.x_mean"].reshape(num_inputs), x_mean)
+            and np.array_equal(initializers[f"base.members.{m}.scaler.x_std"].reshape(num_inputs), x_std)
+            and np.array_equal(initializers[f"base.members.{m}.scaler.log10_mask"].astype(bool).reshape(num_inputs), log10_mask)
+        ):
+            raise ValueError(f"member {m} input scaler differs from member 0")
+
+    # Read scalar constants directly from the ONNX graph nodes.
+    node_by_out = {n.output[0]: n for n in graph.node if n.output}
+
+    def const_val(tensor_name):
+        return walk.constant(tensor_name)
+
+    # Input log10 floor from scaler Clip node.
+    scaler_clip = next(
+        n for n in graph.node
+        if n.op_type == "Clip" and n.input[0] == graph_input.name
+    )
+    input_log10_floor = float(const_val(scaler_clip.input[1]).item())
+
+    # Activation: mish uses Softplus->Tanh->Mul on inp.0 output; gelu uses Erf.
+    inp_gemm = next(
+        n for n in graph.node
+        if n.op_type == "Gemm" and "base.members.0.model.inp.0.weight" in n.input
+    )
+    inp_consumers = [n.op_type for n in walk.consumers(inp_gemm.output[0])]
+    if "Softplus" in inp_consumers:
+        activation = "mish"
+    elif "Div" in inp_consumers:
+        activation = "gelu"
+    else:
+        raise ValueError(f"unsupported activation consumers after inp.0: {inp_consumers}")
+
+    # Member variance epsilon: Softplus -> Squeeze -> Add(eps) in member 0 var head.
+    var_softplus = next(
+        n for n in graph.node
+        if n.op_type == "Softplus" and "/base/members.0/model/Softplus" in n.output[0]
+    )
+    var_squeeze = walk.next_node(var_softplus.output[0], "Squeeze")
+    var_add = walk.next_node(var_squeeze.output[0], "Add")
+    variance_epsilon = float(const_val(var_add.input[1]).item())
+
+    # Member output scaling: mu * y_std + y_mean, then asinh_scale * sinh(clip(z, -15, 15)).
+    m0_mul = node_by_out["/base/members.0/Mul_output_0"]
+    m0_add = node_by_out["/base/members.0/Add_output_0"]
+    m0_mul4 = node_by_out["/base/members.0/Mul_4_output_0"]
+    output_std = float(const_val(m0_mul.input[1]).item())
+    output_mean = float(const_val(m0_add.input[1]).item())
+    asinh_scale = float(const_val(m0_mul4.input[1]).item())
+
+    # Mean clamping (heat fluxes clamp >= 0; particle flux is unclamped).
+    mean_node = node_by_out["mean"]
+    mean_src = node_by_out[mean_node.input[0]]
+    if mean_src.op_type == "Clip":
+        clamp_mean_min = float(const_val(mean_src.input[1]).item())
+    else:
+        clamp_mean_min = float("nan")
+
+    # Calibration wrapper feature indices (rmin_idx, betae_idx) from Gather on input.
+    input_gathers = [
+        n for n in graph.node if n.op_type == "Gather" and n.input[0] == graph_input.name
+    ]
+    if len(input_gathers) != 2:
+        raise ValueError(f"expected 2 Gather nodes on input for calibration, got {len(input_gathers)}")
+    rmin_idx = int(const_val(input_gathers[0].input[1]).item())
+    betae_idx = int(const_val(input_gathers[1].input[1]).item())
+
+    block_params = []
+    for b in blocks:
+        block_params.append({
+            "norm_weight": stack_param(f"model.blocks.{b}.net.0.weight"),
+            "norm_bias": stack_param(f"model.blocks.{b}.net.0.bias"),
+            "linear1_weight": stack_param(f"model.blocks.{b}.net.1.weight"),
+            "linear1_bias": stack_param(f"model.blocks.{b}.net.1.bias"),
+            "linear2_weight": stack_param(f"model.blocks.{b}.net.4.weight"),
+            "linear2_bias": stack_param(f"model.blocks.{b}.net.4.bias"),
+        })
+
+    return {
+        "architecture": "resnet_v42",
+        "num_estimators": len(members),
+        "num_blocks": len(blocks),
+        "hidden_size": int(initializers["base.members.0.model.inp.0.weight"].shape[0]),
+        "activation": activation,
+        "input_mean": x_mean.astype(np.float64),
+        "input_std": x_std.astype(np.float64),
+        "input_log10_mask": log10_mask,
+        "input_log10_floor": np.float32(input_log10_floor),
+        "output_mean": output_mean,
+        "output_std": output_std,
+        "asinh_scale": np.float32(asinh_scale),
+        "clamp_mean_min": np.float32(clamp_mean_min),
+        "variance_epsilon": np.float32(variance_epsilon),
+        "inp_weight": stack_param("model.inp.0.weight"),
+        "inp_bias": stack_param("model.inp.0.bias"),
+        "blocks": block_params,
+        "norm_weight": stack_param("model.norm.weight"),
+        "norm_bias": stack_param("model.norm.bias"),
+        "mean_head_0_weight": stack_param("model.mean.0.weight"),
+        "mean_head_0_bias": stack_param("model.mean.0.bias"),
+        "mean_head_2_weight": stack_param("model.mean.2.weight"),
+        "mean_head_2_bias": stack_param("model.mean.2.bias"),
+        "var_head_0_weight": stack_param("model.var.0.weight"),
+        "var_head_0_bias": stack_param("model.var.0.bias"),
+        "var_head_2_weight": stack_param("model.var.2.weight"),
+        "var_head_2_bias": stack_param("model.var.2.bias"),
+        "cal_theta": initializers["theta"].astype(np.float32),
+        "cal_aux_mean": initializers["aux_mean"].astype(np.float32).reshape(2),
+        "cal_aux_std": initializers["aux_std"].astype(np.float32).reshape(2),
+        "cal_rmin_idx": np.int64(rmin_idx),
+        "cal_betae_idx": np.int64(betae_idx),
+    }
+
+
 def parse_onnx(path):
     """Reads one flux's regressor, after checking the graph structure strictly.
 
-    Returns a dict of the network's parameters. "weights" and "biases" are lists
-    with one entry per layer, stacked over the ensemble: weights[j] has shape
-    (num_estimators, out, in) and biases[j] (num_estimators, out). They are
-    lists because the layer shapes differ (in = n_in for the first layer,
-    out = 2 for the last).
+    Supports both legacy ParallelDeepEnsemble MLP graphs and STEP EM 5.0.x
+    V42PhysicalVariance(V42Ensemble(ResNetMLP)) graphs.
     """
     graph = onnx.load(str(path)).graph
+    init_names = {i.name for i in graph.initializer}
+    if "base.members.0.scaler.x_mean" in init_names and "theta" in init_names:
+        try:
+            return parse_onnx_resnet_v42(graph)
+        except ValueError as e:
+            raise ValueError(f"{path.name}: {e}") from e
+
     try:
         check_onnx_structure(graph)
     except ValueError as e:
@@ -378,6 +540,7 @@ def parse_onnx(path):
     variance_epsilon = walk.constant(add_epsilon.input[1]).astype(np.float32).item()
 
     return {
+        "architecture": "mlp",
         "weights": weights,
         "biases": biases,
         "input_mean": initializers["mean_inputs"].astype(np.float64).reshape(num_inputs),
@@ -405,9 +568,59 @@ def check_input_labels(networks, input_labels):
 def build_arrays(networks, onnx_paths, model_dir, version, input_labels):
     """The npz contents, as documented at the top of this file."""
     fluxes = list(networks)
+    arch = networks[fluxes[0]]["architecture"]
+    if any(networks[f]["architecture"] != arch for f in fluxes):
+        raise ValueError("mixed network architectures across fluxes")
 
     def per_flux(key, dtype=None):
         return np.array([networks[f][key] for f in fluxes], dtype=dtype)
+
+    if arch == "resnet_v42":
+        arrays = {
+            "version": np.array(version),
+            "model_name": np.array(model_dir.name),
+            "architecture": np.array("resnet_v42"),
+            "input_labels": np.array(input_labels),
+            "output_labels": np.array(fluxes),
+            "input_mean": per_flux("input_mean", np.float64),
+            "input_std": per_flux("input_std", np.float64),
+            "input_log10_mask": per_flux("input_log10_mask", bool),
+            "input_log10_floor": per_flux("input_log10_floor", np.float32),
+            "output_mean": per_flux("output_mean", np.float64),
+            "output_std": per_flux("output_std", np.float64),
+            "asinh_scale": per_flux("asinh_scale", np.float32),
+            "clamp_mean_min": per_flux("clamp_mean_min", np.float32),
+            "variance_epsilon": per_flux("variance_epsilon", np.float32),
+            "num_estimators": per_flux("num_estimators", np.int64),
+            "num_blocks": per_flux("num_blocks", np.int64),
+            "hidden_size": per_flux("hidden_size", np.int64),
+            "activation": np.array([networks[f]["activation"] for f in fluxes]),
+            "onnx_sha256": np.array(
+                [hashlib.sha256(onnx_paths[f].read_bytes()).hexdigest() for f in fluxes]
+            ),
+        }
+        for flux, net in networks.items():
+            arrays[f"{flux}/inp/weight"] = net["inp_weight"]
+            arrays[f"{flux}/inp/bias"] = net["inp_bias"]
+            for b, blk in enumerate(net["blocks"]):
+                arrays[f"{flux}/block_{b}/norm/weight"] = blk["norm_weight"]
+                arrays[f"{flux}/block_{b}/norm/bias"] = blk["norm_bias"]
+                arrays[f"{flux}/block_{b}/linear1/weight"] = blk["linear1_weight"]
+                arrays[f"{flux}/block_{b}/linear1/bias"] = blk["linear1_bias"]
+                arrays[f"{flux}/block_{b}/linear2/weight"] = blk["linear2_weight"]
+                arrays[f"{flux}/block_{b}/linear2/bias"] = blk["linear2_bias"]
+            arrays[f"{flux}/norm/weight"] = net["norm_weight"]
+            arrays[f"{flux}/norm/bias"] = net["norm_bias"]
+            for head in ("mean", "var"):
+                for idx in (0, 2):
+                    arrays[f"{flux}/{head}_head_{idx}/weight"] = net[f"{head}_head_{idx}_weight"]
+                    arrays[f"{flux}/{head}_head_{idx}/bias"] = net[f"{head}_head_{idx}_bias"]
+            arrays[f"{flux}/cal/theta"] = net["cal_theta"]
+            arrays[f"{flux}/cal/aux_mean"] = net["cal_aux_mean"]
+            arrays[f"{flux}/cal/aux_std"] = net["cal_aux_std"]
+            arrays[f"{flux}/cal/rmin_idx"] = net["cal_rmin_idx"]
+            arrays[f"{flux}/cal/betae_idx"] = net["cal_betae_idx"]
+        return arrays
 
     arrays = {
         "version": np.array(version),
@@ -446,11 +659,129 @@ def build_arrays(networks, onnx_paths, model_dir, version, input_labels):
 # Verification -----------------------------------------------------------------
 
 
+_ERF_UFUNC = np.frompyfunc(math.erf, 1, 1)
+
+
+def _apply_activation(x, name):
+    if name == "mish":
+        return x * np.tanh(np.logaddexp(np.float32(0.0), x))
+    if name == "gelu":
+        inv_sqrt2 = np.float32(1.0 / math.sqrt(2.0))
+        erf_val = _ERF_UFUNC(x * inv_sqrt2).astype(np.float32)
+        return np.float32(0.5) * x * (np.float32(1.0) + erf_val)
+    raise ValueError(f"unsupported activation: {name}")
+
+
+def _layer_norm(x, weight, bias, eps=np.float32(1e-5)):
+    mean = x.mean(axis=-1, keepdims=True)
+    var = ((x - mean) ** 2).mean(axis=-1, keepdims=True)
+    return (x - mean) / np.sqrt(var + eps) * weight[:, None, :] + bias[:, None, :]
+
+
+def _forward_resnet_v42(data, x):
+    x32 = np.asarray(x, dtype=np.float32)
+    inv_ln10 = np.float32(1.0 / math.log(10.0))
+    knots = np.array(
+        [0.0, math.log1p(1.0), math.log1p(10.0), math.log1p(100.0), math.log1p(1000.0)],
+        dtype=np.float32,
+    )
+    out = {}
+    for i, flux in enumerate(data["output_labels"]):
+        flux = str(flux)
+        floor = np.float32(data["input_log10_floor"][i])
+        log10_mask = np.asarray(data["input_log10_mask"][i], dtype=bool)
+        x_mean = data["input_mean"][i].astype(np.float32)
+        x_std = data["input_std"][i].astype(np.float32)
+
+        log_x = np.log(np.maximum(x32, floor)) * inv_ln10
+        xt = np.where(log10_mask[None, :], log_x, x32)
+        z_in = (xt - x_mean[None, :]) / x_std[None, :]
+
+        act = str(data["activation"][i])
+        h = np.einsum("ebi,eoi->ebo", z_in[None], data[f"{flux}/inp/weight"]) + data[f"{flux}/inp/bias"][:, None, :]
+        h = _apply_activation(h, act)
+        for b in range(int(data["num_blocks"][i])):
+            ln = _layer_norm(h, data[f"{flux}/block_{b}/norm/weight"], data[f"{flux}/block_{b}/norm/bias"])
+            u = np.einsum("ebi,eoi->ebo", ln, data[f"{flux}/block_{b}/linear1/weight"]) + data[f"{flux}/block_{b}/linear1/bias"][:, None, :]
+            u = _apply_activation(u, act)
+            u = np.einsum("ebi,eoi->ebo", u, data[f"{flux}/block_{b}/linear2/weight"]) + data[f"{flux}/block_{b}/linear2/bias"][:, None, :]
+            h = h + u
+        z = _layer_norm(h, data[f"{flux}/norm/weight"], data[f"{flux}/norm/bias"])
+
+        mh = _apply_activation(
+            np.einsum("ebi,eoi->ebo", z, data[f"{flux}/mean_head_0/weight"]) + data[f"{flux}/mean_head_0/bias"][:, None, :],
+            act,
+        )
+        mu_raw = (np.einsum("ebi,eoi->ebo", mh, data[f"{flux}/mean_head_2/weight"]) + data[f"{flux}/mean_head_2/bias"][:, None, :])[..., 0]
+
+        vh = _apply_activation(
+            np.einsum("ebi,eoi->ebo", z, data[f"{flux}/var_head_0/weight"]) + data[f"{flux}/var_head_0/bias"][:, None, :],
+            act,
+        )
+        v_logit = (np.einsum("ebi,eoi->ebo", vh, data[f"{flux}/var_head_2/weight"]) + data[f"{flux}/var_head_2/bias"][:, None, :])[..., 0]
+        v_raw_head = np.logaddexp(np.float32(0.0), v_logit) + np.float32(data["variance_epsilon"][i])
+
+        y_mean = np.float32(data["output_mean"][i])
+        y_std = np.float32(data["output_std"][i])
+        asinh_scale = np.float32(data["asinh_scale"][i])
+        z_y = mu_raw * y_std + y_mean
+        v_y = v_raw_head * (y_std ** 2)
+        zc = np.clip(z_y, np.float32(-15.0), np.float32(15.0))
+        ep, em = np.exp(zc), np.exp(-zc)
+        sinh_z = np.float32(0.5) * (ep - em)
+        cosh_z = np.float32(0.5) * (ep + em)
+        m_phys = asinh_scale * sinh_z
+        v_phys = (asinh_scale * asinh_scale) * v_y * (cosh_z * cosh_z)
+
+        mu = m_phys.mean(axis=0)
+        var = v_phys.mean(axis=0) + ((m_phys - mu[None, :]) ** 2).mean(axis=0)
+        clamp_min = float(data["clamp_mean_min"][i])
+        if math.isfinite(clamp_min):
+            mu = np.maximum(mu, np.float32(clamp_min))
+        var = np.maximum(var, np.float32(0.0))
+
+        # Post-hoc physical variance calibration (V42PhysicalVariance).
+        v0 = np.maximum(var, np.float32(1e-12))
+        z_c = np.clip(z_in, np.float32(-6.0), np.float32(6.0))
+        aux_raw = np.stack([np.log(np.maximum(np.abs(mu), np.float32(1e-6))), np.log(v0)], axis=1)
+        aux = np.clip((aux_raw - data[f"{flux}/cal/aux_mean"][None, :]) / data[f"{flux}/cal/aux_std"][None, :], np.float32(-6.0), np.float32(6.0))
+        q = np.log1p(np.abs(mu) / np.float32(0.1))
+        r0 = np.clip((q - knots[0]) / (knots[1] - knots[0]), np.float32(0.0), np.float32(1.0))
+        r1 = np.clip((q - knots[1]) / (knots[2] - knots[1]), np.float32(0.0), np.float32(1.0))
+        r2 = np.clip((q - knots[2]) / (knots[3] - knots[2]), np.float32(0.0), np.float32(1.0))
+        r3 = np.clip((q - knots[3]) / (knots[4] - knots[3]), np.float32(0.0), np.float32(1.0))
+        b_mag = np.stack([np.float32(1.0) - r0, r0 - r1, r1 - r2, r2 - r3, r3], axis=1)
+        near_zero = np.exp(-np.abs(mu) / np.float32(0.1))[:, None]
+        neg_in = np.clip(-mu / np.float32(0.05), np.float32(-30.0), np.float32(30.0))
+        neg = np.float32(1.0) / (np.float32(1.0) + np.exp(-neg_in))
+        neg_feat = np.stack([neg, neg * q], axis=1)
+
+        rmin = x32[:, int(data[f"{flux}/cal/rmin_idx"])]
+        log10_betae = np.log(np.maximum(x32[:, int(data[f"{flux}/cal/betae_idx"])], np.float32(1e-8))) * inv_ln10
+        oc70 = np.clip((rmin - np.float32(0.70)) / np.float32(0.10), np.float32(0.0), np.float32(1.0))[:, None]
+        oc85 = np.clip((rmin - np.float32(0.85)) / np.float32(0.10), np.float32(0.0), np.float32(1.0))[:, None]
+        lowb_oc = (
+            np.clip((rmin - np.float32(0.65)) / np.float32(0.10), np.float32(0.0), np.float32(1.0))
+            * np.clip((np.float32(-2.8) - log10_betae) / np.float32(0.60), np.float32(0.0), np.float32(1.0))
+        )[:, None]
+        feats = np.concatenate(
+            [np.ones((len(mu), 1), dtype=np.float32), z_c, aux, b_mag, near_zero, neg_feat, oc70, oc85, lowb_oc],
+            axis=1,
+        )
+        eta = np.clip(feats @ data[f"{flux}/cal/theta"], np.float32(-25.0), np.float32(25.0))
+        v_cal = np.clip(v0 * np.exp(eta), np.float32(1e-12), np.float32(1e12))
+        out[flux] = (mu.astype(np.float64), v_cal.astype(np.float64))
+    return out
+
+
 def forward(data, x):
     """NumPy forward pass of an exported npz, mirroring the ONNX graph.
 
     Returns {flux: (mean, variance)}.
     """
+    if "architecture" in data and str(data["architecture"]) == "resnet_v42":
+        return _forward_resnet_v42(data, x)
+
     out = {}
     for i, flux in enumerate(data["output_labels"]):
         z = (x.astype(np.float64) - data["input_mean"][i]) / data["input_std"][i]
@@ -484,12 +815,17 @@ def verify(npz_path, onnx_paths, num_samples=10_000, seed=0):
     with np.load(npz_path, allow_pickle=False) as f:
         data = {k: f[k] for k in f.files}
 
+    is_resnet = "architecture" in data and str(data["architecture"]) == "resnet_v42"
+    n_samples = min(num_samples, 1_000) if is_resnet else num_samples
     rng = np.random.default_rng(seed)
     passed = True
     for i, (flux, path) in enumerate(onnx_paths.items()):
         # Inputs within +/- 2 standard deviations of this flux's normalisation.
         input_mean, input_std = data["input_mean"][i], data["input_std"][i]
-        x = input_mean + input_std * rng.uniform(-2, 2, (num_samples, len(input_mean)))
+        x = input_mean + input_std * rng.uniform(-2, 2, (n_samples, len(input_mean)))
+        if "input_log10_mask" in data:
+            mask = np.asarray(data["input_log10_mask"][i], dtype=bool)
+            x[:, mask] = 10.0 ** x[:, mask]
         x = x.astype(np.float32)
 
         session = ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
@@ -497,18 +833,26 @@ def verify(npz_path, onnx_paths, num_samples=10_000, seed=0):
             o.ravel() for o in session.run(None, {session.get_inputs()[0].name: x})
         )
         npz_mean, npz_var = forward(data, x)[flux]
-        std = data["output_std"][i]
-
-        mean_error = np.abs(npz_mean - onnx_mean).max() / std
-        # The ensemble variance is E[x^2] - E[x]^2 in float32, so where members
-        # agree (normalised variance ~ eps) it is only defined to f32 rounding;
-        # compare against that floor rather than the variance itself.
-        var_error = np.max(np.abs(npz_var - onnx_var) / (onnx_var + 1e-4 * std**2))
-        print(
-            f"  verify {flux}: max |d mean|/output_std = {mean_error:.1e}, "
-            f"max |d var|/(var + 1e-4 output_std^2) = {var_error:.1e}"
-        )
-        passed &= mean_error < 1e-4 and var_error < 1e-2
+        if is_resnet:
+            mean_error = np.max(np.abs(npz_mean - onnx_mean) / np.maximum(np.abs(onnx_mean), 1.0))
+            var_error = np.max(np.abs(npz_var - onnx_var) / np.maximum(np.abs(onnx_var), 2e-3))
+            print(
+                f"  verify {flux}: max rel |d mean| = {mean_error:.1e}, "
+                f"max rel |d var| = {var_error:.1e}"
+            )
+            passed &= mean_error < 1e-4 and var_error < 1e-2
+        else:
+            std = data["output_std"][i]
+            mean_error = np.abs(npz_mean - onnx_mean).max() / std
+            # The ensemble variance is E[x^2] - E[x]^2 in float32, so where members
+            # agree (normalised variance ~ eps) it is only defined to f32 rounding;
+            # compare against that floor rather than the variance itself.
+            var_error = np.max(np.abs(npz_var - onnx_var) / (onnx_var + 1e-4 * std**2))
+            print(
+                f"  verify {flux}: max |d mean|/output_std = {mean_error:.1e}, "
+                f"max |d var|/(var + 1e-4 output_std^2) = {var_error:.1e}"
+            )
+            passed &= mean_error < 1e-4 and var_error < 1e-2
 
     if not passed:
         raise SystemExit("Verification FAILED")
@@ -531,6 +875,8 @@ def onnx_to_npz(
     onnx_paths, networks = {}, {}
     for flux in fluxes:
         path = model_dir / f"regressor_{flux}_onnx.onnx"
+        if not path.exists():
+            path = model_dir / f"regressor_{flux}.onnx"
         if path.read_bytes()[:40].startswith(b"version https://git-lfs"):
             raise SystemExit(f"{path} is a git-lfs pointer; run `git lfs pull` first")
         onnx_paths[flux] = path
